@@ -9,6 +9,7 @@
 # Python读大型文本：https://blog.csdn.net/potato012345/article/details/88728709
 # chardet文本编码检测：https://blog.csdn.net/tianzhu123/article/details/8187470
 
+from itertools import cycle
 import os
 import chardet  # 文件编码检测，需安装
 
@@ -50,6 +51,10 @@ class Text_Mgt():
                             "\n") != "" and text.strip("\n")[0:len(choose)] != str(choose)]
         return text_list
 
+    def Read_Text(file_path: str, encoding: str = ''):
+        '读取文本并返回字符串'
+        return '\n'.join(Text_Mgt.List_Read_Text(file_path=file_path, encoding=encoding))
+
     @staticmethod
     def Match_List(list: list, text: str):
         '逐一匹配列表中的值是否包含在字符串中 返回：bool'
@@ -70,13 +75,39 @@ class Text_Mgt():
         else:  # 文件既不存在也不需要写入内容
             return False
 
+    def List_Read_TXT_Under_Folder(folder_path: str, file_extension: str = '.txt', list_count: int = 10000, choose: str = '', chose_mode: int = 0, read_mode: int = 0, encoding: str = ''):
+        '读取文件夹下的指定文件类型的内容并返回列表，*代表所有文件后缀都读取，最大存储的行数限制list_count(默认10000)行，可选排除(0)或选择(1)某字符串开头的行，可选从行头选择(0)还是从行尾选择(1)，不支持匹配换行符 返回：list'
+        if folder_path[-1] == '/':  # 文件夹路径合法化
+            folder_path = folder_path[:-1]
+        files_name = os.listdir(folder_path)  # 获取文件夹下的所有文件名称
+        text_list = []
+        cycle_count = 0  # 用于计算读取的有效行数
+        file_extension = file_extension.lower()  # 扩展名变为小写形式
+        for file_name in files_name:  # 遍历文件夹
+            # 判断是否为需要读取的后缀
+            if ((os.path.splitext(file_name)[1]).lower() == file_extension or file_extension == '*') and os.path.isfile(f'{folder_path}/{file_name}'):
+                file_data = Text_Mgt.List_Read_Text(
+                    file_path=f'{folder_path}/{file_name}',
+                    choose=choose,
+                    choose_mode=chose_mode,
+                    read_mode=read_mode,
+                    encoding=encoding
+                )
+                text_list += file_data
+                cycle_count += 1
+                if list_count <= cycle_count:
+                    break
+        return text_list
+
 
 if __name__ == '__main__':  # 代码测试
     import time
     time_start = time.time()
     file_path = './tests/text/test.txt'
     # print(Text_Mgt.Encodeing_Detect(file_path))
-    # print(Text_Mgt.List_Read_Text(file_path, choose='#',choose_mode=1, read_mode=0))
+    # print(Text_Mgt.Read_Text(file_path='./core/log_mgt.py'))
+    # print(Text_Mgt.List_Read_Text(file_path='./core/log_mgt.py', choose='#',choose_mode=1, read_mode=0))
     # print(Text_Mgt.Match_List(Text_Mgt.List_Read_Text(file_path),'#测试啊'))
     # Text_Mgt.Text_Exists('./temp.txt', 'hello')
+    # print(Text_Mgt.List_Read_TXT_Under_Folder('./core/', '.txt'))
     print(time.time()-time_start)
