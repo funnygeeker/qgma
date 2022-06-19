@@ -55,15 +55,6 @@ class Text_Mgt():
         '读取文本并返回字符串'
         return '\n'.join(Text_Mgt.List_Read_Text(file_path=file_path, encoding=encoding))
 
-    @staticmethod
-    def Match_List(list: list, text: str):
-        '逐一匹配列表中的值是否包含在字符串中 返回：bool'
-        for i in list:  # 逐一匹配列表
-            if str(i) in str(text):  # 如果文本在列表中
-                return True
-        else:
-            return False
-
     def Text_Exists(file_path: str, text_to_write: str = '', encoding: str = 'utf-8'):
         '检查文本文件是否存在，不存在则可创建并写入内容 返回：bool'
         if os.path.isfile("./settings.txt") == True:  # 如果文件存在

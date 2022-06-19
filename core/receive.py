@@ -14,23 +14,27 @@ import socket
 import json
 
 
-class Receive:
-    'Socket接收数据，接收消息请使用Rev_Msg()函数'
+class Receive():
+    '''【Socket接收数据】
+    接收消息请使用Rev_Msg()函数'''
     server_addr = '0.0.0.0'  # 默认监听ip
-    server_event_port = 5701  # 默认监听端口
+    server_receive_port = 5701  # 默认监听端口
     ListenSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    ListenSocket.bind((server_addr, server_event_port))
+    ListenSocket.bind((server_addr, server_receive_port))
     ListenSocket.listen(100)
     HttpResponseHeader = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n"
 
-    def Reset_Listen_Port(server_addr, server_event_port):
-        '重新设置监听端口'
+    def Reset_Listen_Port(server_addr:str, server_receive_port:int):
+        '''【重新设置监听端口】
+        server_addr:服务器地址
+        server_receive_port:监听端口'''
         Receive.ListenSocket = socket.socket(
             socket.AF_INET, socket.SOCK_STREAM)
-        Receive.ListenSocket.bind((server_addr, server_event_port))
+        Receive.ListenSocket.bind((server_addr, server_receive_port))
 
-    def Request_To_Json(msg):
-        '将接收到的数据转化为json 返回：json'
+    def Request_To_Json(msg:str):
+        '''【将接收到的数据转化为json】
+        返回:dict'''
         for i in range(len(msg)):
             if msg[i] == "{" and msg[-1] == "\n":
                 return json.loads(msg[i:])
