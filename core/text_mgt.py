@@ -9,7 +9,6 @@
 # Python读大型文本：https://blog.csdn.net/potato012345/article/details/88728709
 # chardet文本编码检测：https://blog.csdn.net/tianzhu123/article/details/8187470
 
-from itertools import cycle
 import os
 import chardet  # 文件编码检测，需安装
 
@@ -53,7 +52,10 @@ class Text_Mgt():
 
     def Read_Text(file_path: str, encoding: str = ''):
         '读取文本并返回字符串'
-        return '\n'.join(Text_Mgt.List_Read_Text(file_path=file_path, encoding=encoding))
+        if encoding == '':  # 如果没有文本编码参数，则自动识别编码
+            encoding = Text_Mgt.Encodeing_Detect(file_path)
+        with open(file_path, "r", encoding=encoding) as all_text:
+            return ''.join(all_text)
 
     def Text_Exists(file_path: str, text_to_write: str = '', encoding: str = 'utf-8'):
         '检查文本文件是否存在，不存在则可创建并写入内容 返回：bool'
@@ -66,17 +68,25 @@ class Text_Mgt():
         else:  # 文件既不存在也不需要写入内容
             return False
 
-    def List_Read_TXT_Under_Folder(folder_path: str, file_extension: str = '.txt', list_count: int = 10000, choose: str = '', chose_mode: int = 0, read_mode: int = 0, encoding: str = ''):
-        '读取文件夹下的指定文件类型的内容并返回列表，*代表所有文件后缀都读取，最大存储的行数限制list_count(默认10000)行，可选排除(0)或选择(1)某字符串开头的行，可选从行头选择(0)还是从行尾选择(1)，不支持匹配换行符 返回：list'
+    def List_Read_TXT_Under_Folder(folder_path: str, file_extension: str = '.txt', list_count: int = 100, choose: str = '', chose_mode: int = 0, read_mode: int = 0, return_mode: str = 'list', encoding: str = ''):
+        '''读取文件夹下的指定文件类型的内容并返回列表，
+        *代表所有文件后缀都读取，最大读取的文件数限制list_count(默认100)个，
+        可选排除(0)或选择(1)某字符串开头的行，
+        可选从行头选择(0)还是从行尾选择(1)，
+        不支持匹配换行符
+        返回模式：可选'list'（默认）或'dict'（{文件名（不含文件扩展名）:[列表]}）
+        返回：list/dict'''
         if folder_path[-1] == '/':  # 文件夹路径合法化
             folder_path = folder_path[:-1]
-        files_name = os.listdir(folder_path)  # 获取文件夹下的所有文件名称
+        files_name = os.listdir(folder_path)  # 获取文件夹下的所有文件和文件夹名称
         text_list = []
+        list_dict = {}
         cycle_count = 0  # 用于计算读取的有效行数
         file_extension = file_extension.lower()  # 扩展名变为小写形式
         for file_name in files_name:  # 遍历文件夹
             # 判断是否为需要读取的后缀
             if ((os.path.splitext(file_name)[1]).lower() == file_extension or file_extension == '*') and os.path.isfile(f'{folder_path}/{file_name}'):
+                # 判断是否为文件，小写处理文件扩展名，确定是否为需要读取的文件，并进行读取
                 file_data = Text_Mgt.List_Read_Text(
                     file_path=f'{folder_path}/{file_name}',
                     choose=choose,
@@ -84,11 +94,15 @@ class Text_Mgt():
                     read_mode=read_mode,
                     encoding=encoding
                 )
+                list_dict[os.path.splitext(file_name)[0]] = file_data
                 text_list += file_data
                 cycle_count += 1
-                if list_count <= cycle_count:
+                if list_count <= cycle_count:  # 如果超出文件读取数
                     break
-        return text_list
+        if return_mode == 'dict':  # 返回模式为字典
+            return list_dict
+        else:  # 返回模式为列表
+            return text_list
 
 
 if __name__ == '__main__':  # 代码测试
@@ -100,5 +114,5 @@ if __name__ == '__main__':  # 代码测试
     # print(Text_Mgt.List_Read_Text(file_path='./core/log_mgt.py', choose='#',choose_mode=1, read_mode=0))
     # print(Text_Mgt.Match_List(Text_Mgt.List_Read_Text(file_path),'#测试啊'))
     # Text_Mgt.Text_Exists('./temp.txt', 'hello')
-    # print(Text_Mgt.List_Read_TXT_Under_Folder('./core/', '.txt'))
+    # print(Text_Mgt.List_Read_TXT_Under_Folder('./config/conf', '.ini',return_mode='dict'))
     print(time.time()-time_start)

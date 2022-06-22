@@ -10,8 +10,9 @@
 # 通过socket进行数据接收：https://blog.csdn.net/qq_44809707/article/details/119959864
 # 超长socket数据接收：https://developer.aliyun.com/article/456224
 
+
+from core.function import *
 import socket
-import json
 
 
 class Receive():
@@ -32,14 +33,25 @@ class Receive():
             socket.AF_INET, socket.SOCK_STREAM)
         Receive.ListenSocket.bind((server_addr, server_receive_port))
 
-    def Request_To_Json(msg:str):
+    def Request_To_Dict(msg:str):
+        '''【将接收到的数据转化为dict】
+        返回:dict'''
+        all_text = msg.split('\n')
+        all_text = [text.strip("\n") for text in all_text if text.strip("\n") != ""]
+        for line in all_text:
+            if line[0] == '{':
+                return Function.Data_To_Dict(line)
+        else:
+            return None
+
+    """def Request_To_Json(msg:str):
         '''【将接收到的数据转化为json】
         返回:dict'''
         for i in range(len(msg)):
             if msg[i] == "{" and msg[-1] == "\n":
                 return json.loads(msg[i:])
         else:
-            return None
+            return None""" # 弃用，Request_To_Dict将代替此函数，效率提升200%（100000条7.5=>2.5秒）(启用日志则为18.5秒)
 
     def Rev_Msg():
         '【线程阻塞】接收的消息（没有进行过滤） 返回：json / None'
@@ -47,7 +59,6 @@ class Receive():
         # 长数据接收
         total_data = bytes()
         cycle_num = 0  # 循环计数，以防接收数据过长
-
         while True:
             # 将收到的数据拼接起来
             rev_data = Client.recv(1024)
@@ -55,7 +66,9 @@ class Receive():
             cycle_num += 1  # 循环次数计数
             if len(rev_data) < 1024:  # 如果数据接收完成
                 Request = total_data.decode(encoding='utf-8')  # 解码接收到的数据
-                rev_Json = Receive.Request_To_Json(Request)  # 将接收到的数据转化为json
+                #print(Request)
+                rev_Json = Receive.Request_To_Dict(msg
+                =Request)  # 将接收到的数据转化为json
                 Client.sendall((Receive.HttpResponseHeader).encode(
                     encoding='utf-8'))  # 返回接收成功状态码
                 Client.close()  # 断开连接
@@ -67,7 +80,7 @@ class Receive():
 
 
 if __name__ == '__main__':
-    while True:
+    '''while True:
         # 对消息进行过滤
         try:
             rev = Receive.Rev_Msg()
@@ -76,5 +89,5 @@ if __name__ == '__main__':
                 continue
         except:
             continue
-        print(str(rev)+'\n--------------------------')
+        print(str(rev)+'\n--------------------------')'''
         #Receive.Reset_Listen_Port('0.0.0.0', 5700)

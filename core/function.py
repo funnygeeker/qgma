@@ -1,4 +1,3 @@
-import ast
 import json
 from core.log_mgt import *
 class Function():
@@ -19,10 +18,12 @@ class Function():
         except:
             # logger.warning(Log_Mgt.Get_Error())
             return None
-
-    def Get_Message_Id(result):
-        try:
-            return result['data']['message_id']
-        except:
-            return None
+    
+    def Num_Conversion(key,mode:str='int'):
+        '''【数值转换】将字符串转换每隔一个空格拆分为列表
+        '1 2 3 4' => [1,2,3,4]'''
+        key = str(key).strip(' ').split(' ') # 先转为str形式以防配置为单数值时为int形式导致报错，除去两端的空格后进行分隔
+        if mode == 'int':
+            return [int(i) for i in key] # 将列表中的值转换回数字
+        return key
         
